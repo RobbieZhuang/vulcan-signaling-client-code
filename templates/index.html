@@ -1,0 +1,139 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Remote Control</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.1/socket.io.js"></script>
+    <script>
+        const socket = io('http://3.96.191.107:8080')
+            // Host
+        document.addEventListener('keydown', e => {
+            switch (e.code) {
+                case 'Space':
+                    socket.emit('connect_host', {
+                        'msg': 'Connection request from the host'
+                    });
+                    break;
+            }
+        });
+        document.addEventListener('keydown', e => {
+            switch (e.code) {
+                case 'KeyD':
+                    socket.emit('host_msg', {
+                        'client_id': document.getElementById("client-id").value,
+                        'msg': 'Message from the host'
+                    });
+                    break;
+            }
+        });
+
+        // Client
+        document.addEventListener('keydown', e => {
+            switch (e.code) {
+                case 'KeyC':
+                    socket.emit('connect_client', {
+                        'msg': 'Connection request from the client',
+                        'room_id': document.getElementById("party-room").value
+                    });
+                    break;
+            }
+        });
+        document.addEventListener('keydown', e => {
+            switch (e.code) {
+                case 'KeyE':
+                    socket.emit('client_msg', {
+                        'msg': 'Message from the client'
+                    });
+                    break;
+            }
+        });
+
+        socket.on('connect', function() {
+            console.log("We got a connection msg!");
+        });
+
+        // Host socket listeners
+        socket.on('connect_host', function(msg) {
+            data = JSON.parse(msg);
+            document.getElementById("step-1").value = data['partyid'];
+            console.log("HOST: We got a connection msg! " + msg);
+        });
+        socket.on('new_client', function(msg) {
+            data = JSON.parse(msg);
+            document.getElementById("new-client").value = data['id'];
+            console.log("HOST: We got a new client" + msg);
+        });
+        socket.on('host_msg', function(msg) {
+            document.getElementById("host-rec-msgs").value += "\n" + msg
+            console.log("HOST: We got a new message" + msg);
+        });
+
+        // Client socket listeners
+        socket.on('connect_client', function(msg) {
+            console.log("CLIENT: We got a connection msg! " + msg);
+        });
+        socket.on('client_msg', function(msg) {
+            document.getElementById("client-rec-msgs").value += "\n" + msg
+            console.log("CLIENT: We got a new message" + msg);
+        });
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        
+        .row {
+            display: flex;
+        }
+        /* Create two equal columns that sits next to each other */
+        
+        .column {
+            flex: 50%;
+            padding: 10px;
+            height: 300px;
+            /* Should be removed. Only for demonstration */
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <p> To try this demo out, please follow the steps, copy paste the generated Room ID and Client ID into the boxes asking for them </p>
+    </div>
+    <div class="row">
+        <div class="column">
+            <h1> Messages Receivied </h1>
+            <label>Messages Recieved on Host</label><br>
+            <textarea style=" min-width:500px; max-width:100%;min-height:50px;height:100px;width:100%;" id='host-rec-msgs'></textarea><br>
+            <label>Messages Recieved on Client</label><br>
+            <textarea style=" min-width:500px; max-width:100%;min-height:50px;height:100px;width:100%;" id='client-rec-msgs'></textarea><br>
+        </div>
+    </div>
+    <div class="row">
+        <div class="column">
+            <h1> Host </h1>
+            <h2>1. Create host:</h2>
+            <h3>Type: Spacebar</h3>
+            <label>Room ID:</label>
+            <input type="text" id="step-1" value="Room ID"><br>
+            <h2>3. Send (SDP, ICE) message from Host:</h2>
+            <label>Host was signalled with new client with Client ID:</label>
+            <input type="text" id="new-client" name="fname" value=""><br>
+            <label>Copy Client ID Here:</label>
+            <input type="text" id="client-id" name="fname" value=""><br>
+            <h3>Type: D</h3>
+        </div>
+        <div class="column">
+            <h1> Client </h1>
+            <h2>2. Create client with room ID:</h2>
+            <label>Copy Room ID Here:</label>
+            <input type="text" id="party-room" name="fname" value=""><br>
+            <h3>Type: C</h3>
+            <h2>4. Send (SDP, ICE) message from Client:</h2>
+            <h3>Type: E</h3>
+        </div>
+    </div>
+</body>
+
+</html>
